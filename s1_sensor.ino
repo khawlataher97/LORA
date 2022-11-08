@@ -18,8 +18,7 @@ const int digPin=13;
 
 #include <ArduinoJson.h>
 
-/*const int dry = 3620; // value for dry sensor
-const int wet = 1700; // value for wet sensor*/
+
 
 DynamicJsonDocument doc(512);
 
@@ -59,8 +58,7 @@ void setup() {
    digitalWrite(M0, LOW);
    digitalWrite(M1, LOW);
 
-   /*Serial.println();
-   Serial.println("Start listening!");*/
+ 
 
    pinMode(digPin, OUTPUT);
      if (!bmp.begin()) {
@@ -69,20 +67,7 @@ void setup() {
    pinMode(option, OUTPUT);
 
 }
-/*void sensor(){
-  int sensorVal = analogRead(36);
-  int percentageHumididy = map(sensorVal, wet, dry, 100, 0); 
-  doc["percentageHumididy %"]=percentageHumididy;
-  String buf;
-  serializeJson(doc,buf);
- // Send(1,4,4,buf);
-         ResponseStatus r = e32ttl.sendBroadcastFixedMessage(4,buf);
 
-  //Send(8,0xA6,7,buf);
-  //Serial2.print(buf);
-  Serial.print(buf);
-
-}*/
 void sensor(){
     float p = (bmp.readPressure()/100);
     float t = bmp.readTemperature(); 
