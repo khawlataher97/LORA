@@ -5,8 +5,6 @@
 #define M1  14
 #define AUX 15
 #define option      4 
-//#define led 2
-//int ledPin=2; //definition digital 8 pins as pin to control the LED
 
 LoRa_E32 e32ttl(&Serial2,15,12,14);
 uint8_t config_struct[6];
@@ -45,7 +43,6 @@ void setup() {
    
 
    pinMode(digPin, OUTPUT);
-//   pinMode(ledPin,OUTPUT);
 }
 
 void loop()
