@@ -12,14 +12,6 @@ char buffer1[30];
 #define TINY_GSM_MODEM_SIM800 // Modem is SIM800L
 #define TINY_GSM_RX_BUFFER   1024  // Set RX buffer to 1Kb
 
-// See all AT commands, if wanted
- //#define DUMP_AT_COMMANDS
- //..
-/*#define MODEM_TX             27
-#define MODEM_RX             26
-#include "SoftwareSerial.h"
-SoftwareSerial mySerial(MODEM_RX ,MODEM_TX);*/
- //..
 #define SerialMon Serial
 // Set serial for AT commands
 #define SerialAT Serial1
@@ -34,12 +26,12 @@ const char gprsPass[] = "";
 const char simPIN[]   = ""; 
 #define GSM_PIN ""
 
-#define SMS_TARGET  "+21650633107"
+#define SMS_TARGET  "+216xxxxxxxx"
 
 // MQTT details
-const char* broker = "public.cloud.shiftr.io";//"mqtt.adviot.tn";                    
-const char* mqttUsername = "public";// "D2EF84";  // MQTT username
-const char* mqttPassword = "public";//"12345678";  // MQTT password
+const char* broker = "public.cloud.shiftr.io";;                    
+const char* mqttUsername = "public";  // MQTT username
+const char* mqttPassword = "public";  // MQTT password
 
 const char* topicOutput1 = "public/relay/Rly1";
 const char* topicOutput2 = "public/relay/Rly2";
@@ -53,7 +45,6 @@ const char* topicpower = "public/power";
 
 #include <TinyGsmClient.h>
 //#include <PubSubClient.h>
-//TinyGsm modem(SerialAT);
 
 #ifdef DUMP_AT_COMMANDS
   #include <StreamDebugger.h>
@@ -73,7 +64,6 @@ PubSubClient mqtt(client);
 
 
 #define OUTPUT_1             0
-//#define OUTPUT_2             15
 #define OPTION                  4
 const int analogInPin = 2;  // Analog input pin that the potentiometer is attached to
 int sensorValue = 0;        // value read from the pot
@@ -92,7 +82,7 @@ int interval = 2000;          // interval between sends
 long lastSendTime = 0;        // last send time
 
 uint8_t config_struct[6];
-//...................
+//..........Anemometre.............
 #define ANEMOMETRE 39 //carte 39   //pin D3, interruption n°1
 #define PI        3.1415
 #define RAYON     0.065  //rayon en mètre de l'anémomètre en mètre
@@ -102,7 +92,7 @@ unsigned long WindSampleTimePrevMillis   = 0;       // Store the previous millis
 unsigned long ReportTimerLongPrevMillis  = 0;       // Store the previous millis
 unsigned long  lastWindIRQ               =0;
 const unsigned long WindSampleTime       = 1000;    // Timer in milliseconds for windspeed (gust)calculation    
-const unsigned long ReportTimerLong      = 60000;  // Timer in milliseconds (10 min) to report temperature, average wind and restart max/min calculation      
+const unsigned long ReportTimerLong      = 600000;  // Timer in milliseconds (10 min) to report temperature, average wind and restart max/min calculation      
 
 float windSpeed                          = 0;       // Wind speed in miles per hour sampled during WindSampleTime
 float windSpeed_sum                      = 0;       // Summarizing of all windspeed measurements to calculate average wind
@@ -111,8 +101,8 @@ float windSamples                        = 0;
 float windGustin                         = 0;
 
 //.....................Pluvioètre..........
-#define PLUVIOMETRE 34 //34   //pin D2, interruption n°0
-#define VALEUR_PLUVIOMETRE 0.3 //0.2794 //valeur en mm d'eau à chaque bascule d'auget
+#define PLUVIOMETRE 34    //interruption n°0
+#define VALEUR_PLUVIOMETRE 0.3  //valeur en mm d'eau à chaque bascule d'auget
 volatile unsigned int countPluviometre = 0;
 int currentPulseCount;
 unsigned long dailyPulseCount;
@@ -121,7 +111,6 @@ float DailytRain;
 unsigned long  previousMillis =  0;
 unsigned long delaipluviometre =  1000;   //1 sec
 
-//................
 ICACHE_RAM_ATTR void interruptAnemometre()
 // Activated by the magnet in the anemometer (2 ticks per rotation), attached to input D3
 {
@@ -196,16 +185,14 @@ void interruptrain(){
     countPluviometre=0; // reset ISR counter
     interrupts();
     dailyPulseCount+=currentPulseCount;
-    currentRain=currentPulseCount*VALEUR_PLUVIOMETRE;//.....................
+    currentRain=currentPulseCount*VALEUR_PLUVIOMETRE;
     currentPulseCount=0;
-    DailytRain=dailyPulseCount*VALEUR_PLUVIOMETRE;//.........
+    DailytRain=dailyPulseCount*VALEUR_PLUVIOMETRE;
     /*Serial.print("currentRain : ");
     Serial.println(currentRain);*/
     char rainString[8];
     dtostrf(currentRain, 1, 2, rainString);
     mqtt.publish(topicrain, rainString); 
-     /* Serial.print("DailytRain : ");
-     Serial.println(DailytRain);*/
     char dayString[8];
     dtostrf(DailytRain, 1, 2, dayString);
     mqtt.publish(topicdaily, dayString);
@@ -278,22 +265,10 @@ void callback(char* topic, byte* message, unsigned int len) {
       ResponseStatus r = e32ttl.sendBroadcastFixedMessage(2,"off");
     }
   }
-  /*else if (String(topic) == topicOutput2) {
-    Serial.print("Changing output to ");
-    if(messageTemp == "on"){
-      Serial.println("on");
-      digitalWrite(OUTPUT_2, HIGH);
-    }
-    else {
-      Serial.println("off");
-      digitalWrite(OUTPUT_2, LOW);
-    }
-  }*/
-}
 
 boolean mqttConnect() {
-  SerialMon.print("Connecting to ");//
-  SerialMon.print(broker);//
+  SerialMon.print("Connecting to ");
+  SerialMon.print(broker);
 
 
   // Authenticate MQTT:
@@ -306,7 +281,6 @@ boolean mqttConnect() {
   }
   SerialMon.println(" success");//
   mqtt.subscribe(topicOutput1);
- // mqtt.subscribe(topicOutput2);
 
   return mqtt.connected();
 }
@@ -328,7 +302,6 @@ void setup() {
    
   
   pinMode(OUTPUT_1, OUTPUT);
-  //pinMode(OUTPUT_2, OUTPUT);
   pinMode(OPTION, OUTPUT);
   setup_modem();
   
@@ -404,8 +377,7 @@ void loop() {
      DeserializationError error =deserializeJson(jsonBuffer ,Data); 
      float temperature =jsonBuffer["temperature"];
      float pression =jsonBuffer["pression"];
-     /*Serial.print("temperature=");Serial.println(temperature);
-     Serial.print("pression=");Serial.println(pression);*/
+    
 
       
       if(temperature>=30)// && temperature <=30)
@@ -428,12 +400,12 @@ void loop() {
     windGust();
     interruptrain();
     Battery_level();
-    //myRTC.updateTime();
-    /*if((myRTC.hours== 23)&&(myRTC.minutes==59)) {
+    myRTC.updateTime();
+    if((myRTC.hours== 23)&&(myRTC.minutes==59)) {
       dailyPulseCount= currentPulseCount;
-     }*/
+     }
 
-    if((millis() - ReportTimerLongPrevMillis) > ReportTimerLong ) { //report timelong=600000 = 10min
+    if((millis() - ReportTimerLongPrevMillis) > ReportTimerLong ) { 
 
         getAverageWindSpeed(); 
         Serial.print("Average WindSpeed (m/s) "); 
